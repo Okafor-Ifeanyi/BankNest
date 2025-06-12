@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  accountNumber  String           @unique
+  name           String?
+  phone          String?          @unique
+  address        String?
+  balance        Float            @default(0)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  sentTransactions     Transaction[]     @relation("Sender")
+  receivedTransactions Transaction[]     @relation("Receiver")
+  externalTransfers    ExternalTransfer[]
+  otps                 Otp[]
+}
+
+model Transaction {
+  id            String           @id @default(cuid())
+  senderId      String
+  receiverId    String?
+  amount        Float
+  type          TransactionType  // INTERNAL_TRANSFER, EXTERNAL_TRANSFER, etc.
+  description   String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  sender        User             @relation("Sender", fields: [senderId], references: [id])
+  receiver      User?             @relation("Receiver", fields: [receiverId], references: [id])
+  externalTransfers ExternalTransfer[] // Optional relation to ExternalTransfer if this transaction is linked to one
+}
+
+model ExternalTransfer {
+  id               String   @id @default(cuid())
+  userId           String   // Who initiated the external transfer
+  transactionId    String   @unique
+  recipientName    String
+  recipientBank    String
+  recipientAccount String
+  amount           Float
+  reference        String?  // For bank confirmation
+  status           TransferStatus @default(PENDING)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id])
+  transaction      Transaction @relation(fields: [transactionId], references: [id])
+}
+
+enum TransactionType {
+  INTERNAL_TRANSFER
+  EXTERNAL_TRANSFER
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransferStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Otp {
+  id         String     @id @default(cuid())
+  userId     String
+  code       String     // the actual OTP code (hashed or plain)
+  type       OtpType    // LOGIN or TRANSACTION
+  expiresAt  DateTime
+  verified   Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+}
+
+enum OtpType {
+  LOGIN
+  TRANSACTION
+}
