@@ -16,6 +16,7 @@ datasource db {
 model User {
   id             String           @id @default(cuid())
   email          String           @unique
+  password          String
   accountNumber  String           @unique
   name           String?
   phone          String?          @unique
@@ -38,6 +39,7 @@ model Transaction {
   amount        Float
   type          TransactionType  // INTERNAL_TRANSFER, EXTERNAL_TRANSFER, etc.
   description   String?
+  method        TransactionMethod @default(cash)
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -53,6 +55,9 @@ model ExternalTransfer {
   recipientName    String
   recipientBank    String
   recipientAccount String
+  recipientAddress String?
+  code             String?
+  remark           String?
   amount           Float
   reference        String?  // For bank confirmation
   status           TransferStatus @default(PENDING)
@@ -68,6 +73,12 @@ enum TransactionType {
   EXTERNAL_TRANSFER
   DEPOSIT
   WITHDRAWAL
+}
+
+enum TransactionMethod {
+  cash
+  transfer
+  cheque
 }
 
 enum TransferStatus {
