@@ -21,5 +21,5 @@ export class AuthController {
     @Post('/verify') 
     verify(@Body() dto: VerifyDto) {
         return this.authService.verify(dto);
-    }
+    } 
 }

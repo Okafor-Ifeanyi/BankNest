@@ -22,9 +22,13 @@ model User {
   phone          String?          @unique
   address        String?
   balance        Float            @default(0)
+  profilePicture String?
+  loanBalance        Float            @default(0)
+  savingsBalance        Float            @default(0)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+  blocked        Boolean          @default(false) 
 
   sentTransactions     Transaction[]     @relation("Sender")
   receivedTransactions Transaction[]     @relation("Receiver")

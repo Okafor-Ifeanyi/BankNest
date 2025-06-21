@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { Request } from 'express';
@@ -13,7 +13,6 @@ export class UserController {
     @UseGuards(AuthGuard('jwt'))
     @Get('me')
     getMe(@Req() req: Request) {
-        console.log(req.user)
         const user_info = req.user as PayloadDTO;
         return this.userService.fetchUsers(user_info)
     }
@@ -21,9 +20,15 @@ export class UserController {
     @UseGuards(AuthGuard('jwt'))
     @Patch('')
     updateMe(@Req() req: Request, @Body() dto:UpdateUserDto) {
-        console.log(req.user)
         const user_info = req.user as PayloadDTO;
         return this.userService.updateUser(user_info.userId, dto)
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('/account')
+    blockMe(@Req() req: Request) {
+        const user_info = req.user as PayloadDTO;
+        return this.userService.blockUser(user_info.userId)
     }
 }
  

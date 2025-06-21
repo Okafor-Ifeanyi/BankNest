@@ -18,42 +18,52 @@ export class AuthService {
     async login(dto: LoginDto) {
         // find the user
         const user = await this.findUserByAccountNumber(dto.account);
-
+    
         if (!user) {
             throw new ForbiddenException('Credentials incorrect, Account.');
         }
-
+    
         // compare password
         const passwordMatches = await argon.verify(user.password, dto.password);
-
-        if( !passwordMatches) { 
+    
+        if (!passwordMatches) { 
             throw new ForbiddenException('Credentials incorrect, Password.');
         }
-
+    
+        // Check if user is blocked
+        if (user.blocked) {
+            console.log("User is blocked:", user.email);
+            return {
+                status: "blocked",
+                code: 403,
+                message: "This user is blocked.",
+            };
+        }
+    
         // Store OTP in the database or cache
         const otp = this.generateOtp();
-       
+    
         // Send OTP to user's email
         await this.sendOtpEmail(user, otp);
-
+    
         await this.prisma.otp.create({
             data: {
                 userId: user.id,
                 code: otp,
                 type: "LOGIN",
-                expiresAt: new Date(Date.now() + 5 * 60 * 1000), // OTP valid for 10 minutes
+                expiresAt: new Date(Date.now() + 5 * 60 * 1000), // OTP valid for 5 minutes
             },
         });
-        
+    
         delete user.password; // Remove password from the response
-
-        console.log(otp)
-        
+    
+        console.log(otp);
+    
         // Return user data without password
         return {
-            "status": "success",
-            "code": 201,
-            "message":"OTP Sent, Verify to login.",
+            status: "success",
+            code: 201,
+            message: "OTP Sent, Verify to login.",
         };
     }
 
@@ -61,6 +71,7 @@ export class AuthService {
         const account_number = await this.generateAccountNumber();
 
         const hashedPassword = await this.hashPassword(dto.password);
+        console.log(dto)
 
         try {
             // Create user in the database

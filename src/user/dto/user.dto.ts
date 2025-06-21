@@ -27,6 +27,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   name?: string;
+  
+  @IsOptional()
+  @IsString()
+  profilePicture?: string;
 
   @IsOptional()
   @IsPhoneNumber(undefined, { message: 'Phone number must be valid' })
@@ -40,6 +44,16 @@ export class UpdateUserDto {
   @IsNumber()
   @Min(0)
   balance?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  loanBalance?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  savingsBalance?: number;
 
   @IsOptional()
   @IsBoolean()
